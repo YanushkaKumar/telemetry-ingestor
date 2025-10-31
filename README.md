@@ -60,3 +60,14 @@ INGEST_TOKEN=secret123
 
 # 5. Application Port
 PORT=3000
+
+🤖 AI Assistance Report
+As permitted by the exercise, AI (Gemini) was used to accelerate development, debug, and improve code quality.
+
+TypeScript Debugging: Helped resolve a strict-mode TypeScript error (TS2532: Object is possibly 'undefined') in the checkHealth method by suggesting the use of optional chaining (?.) for the Mongoose connection object.
+
+E2E Test Troubleshooting (Error Handling): Diagnosed why two end-to-end tests were failing. The AI suggested catching the Mongoose ValidationError on ingest and the Invalid Date error on the summary endpoint, and re-throwing them as a BadRequestException (400), which fixed the tests.
+
+Unit Test Setup: Provided the complete boilerplate for the failing unit tests (.spec.ts files), including how to properly mock all the service and controller dependencies (like TelemetryModel, ConfigService, and HttpService).
+
+README Generation: Generated this detailed README.md file by analyzing all the project files (.ts, .env, .pdf) to ensure all requirements from the exercise document were met and correctly documented.
