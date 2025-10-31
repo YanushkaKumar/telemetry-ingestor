@@ -1,6 +1,6 @@
 # 🚀 IoT Telemetry Ingestor
 
-This project is a high-performance IoT telemetry ingestor built with **NestJS** and **TypeScript**. It's designed to accept JSON device readings, persist them to **MongoDB**, cache the latest data per-device in **Redis**, and trigger real-time alerts to a webhook.
+This project is a high-performance IoT telemetry ingestor service built with **NestJS** and **TypeScript**. It is designed to accept JSON device readings, persist them to **MongoDB**, cache the latest data per-device in **Redis**, and trigger real-time alerts to a webhook.
 
 This repository fulfills all requirements for the "Associate Software Engineer - Cloud & IoT Solutions" technical exercise.
 
@@ -8,14 +8,14 @@ This repository fulfills all requirements for the "Associate Software Engineer -
 
 ## ✨ Core Features
 
-* **High-Speed Ingest:** `POST /api/v1/telemetry` endpoint handles single or array-based telemetry payloads.
-* **Persistent Storage:** All readings are saved to a MongoDB Atlas cluster.
-* **Redis Caching:** The latest reading for every device is cached in Redis (`latest:<deviceId>`) for millisecond-level retrieval.
-* **Real-time Alerting:** Immediately sends a POST alert to a configured webhook if `temperature > 50` or `humidity > 90`.
+* **High-Speed Ingest:** A `POST /api/v1/telemetry` endpoint that accepts both single and array-based telemetry payloads.
+* **Persistent Storage:** All valid readings are saved to a **MongoDB** collection.
+* **Redis Caching:** The latest reading for every device is cached in Redis (using the key `latest:<deviceId>`) for millisecond-level retrieval.
+* **Real-time Alerting:** Immediately sends a `POST` alert to a configured webhook if `temperature > 50` or `humidity > 90`.
 * **Data & Analytics APIs:**
-    * `GET /api/v1/devices/:deviceId/latest`: Fetches the latest device reading (Redis-first, with Mongo fallback).
-    * `GET /api/v1/sites/:siteId/summary`: Provides powerful time-boxed aggregations for a site.
-* **Service Health:** A `GET /api/v1/health` endpoint monitors the live connection status of MongoDB and Redis.
+    * `GET /api/v1/devices/:deviceId/latest`: Fetches the latest device reading (Redis-first, with a Mongo fallback).
+    * `GET /api/v1/sites/:siteId/summary`: Provides powerful time-boxed aggregations for a site (count, avg/max temp, avg/max humidity, unique devices).
+* **Service Health:** A `GET /api/v1/health` endpoint monitors the live connection status of both MongoDB and Redis.
 * **Robust Validation:** All incoming data is strictly validated using DTOs and `class-validator`.
 
 ---
@@ -24,10 +24,10 @@ This repository fulfills all requirements for the "Associate Software Engineer -
 
 ### Prerequisites
 
-* Node.js (v18+)
+* Node.js (v18+ recommended)
 * npm
-* A running **Redis** instance
-* A **MongoDB Atlas** cluster (a free M0 cluster is sufficient)
+* A running **Redis** instance (e.g., `redis://localhost:6379`)
+* A **MongoDB** database (see configuration note below)
 
 ### 1. Installation
 
@@ -37,25 +37,26 @@ This repository fulfills all requirements for the "Associate Software Engineer -
 
 ### 2. Configuration
 
-Create a `.env` file in the project root and add the following variables.
+Create a `.env` file in the project root by copying `.env.example`. You must fill in these values:
 
 ```dotenv
 # ---------------------------------
 # .env Configuration
 # ---------------------------------
 
-# MongoDB Atlas Connection String
-# Note: This project was tested with a MongoDB Atlas cluster
-MONGO_URI=mongodb+srv://<user>:<pass>@<your_cluster_url>/<db_name>
+# 1. MongoDB Atlas Connection String
+# Note: This project was developed and tested using a MongoDB Atlas free cluster.
+# This is my specific connection string:
+MONGO_URI=mongodb+srv://yanushkakumaar:YOUR_PASSWORD_HERE@cluster0.blnzamp.mongodb.net/?appName=Cluster0
 
-# Redis Connection URL
+# 2. Redis Connection URL
 REDIS_URL=redis://localhost:6379
 
-# Alert Webhook URL (My unique URL for review)
+# 3. Alert Webhook URL (My unique URL for review)
 ALERT_WEBHOOK_URL=[https://webhook.site/d26806b1-3de3-4837-b83a-5772d82a1b0b](https://webhook.site/d26806b1-3de3-4837-b83a-5772d82a1b0b)
 
-# Secure Bearer Token
+# 4. Secure Bearer Token (Optional, but implemented)
 INGEST_TOKEN=secret123
 
-# Application Port
+# 5. Application Port
 PORT=3000
