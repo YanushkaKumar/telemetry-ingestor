@@ -1,98 +1,151 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+IoT Telemetry Ingestor - Technical Exercise
+This project is a minimal IoT Telemetry Ingestor built with NestJS and TypeScript, as per the "Associate Software Engineer - Cloud & IoT Solutions" technical exercise.
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+The service provides a set of APIs to ingest telemetry data from IoT devices, store it in MongoDB, cache the latest readings in Redis for quick access, and trigger alerts to a webhook when metrics exceed predefined thresholds.
 
-## Project setup
 
-```bash
-$ npm install
-```
 
-## Compile and run the project
+✨ Core Features
 
-```bash
-# development
-$ npm run start
+Telemetry Ingest: Accepts single or bulk JSON telemetry payloads via POST /api/v1/telemetry.
 
-# watch mode
-$ npm run start:dev
 
-# production mode
-$ npm run start:prod
-```
+Database Storage: Persists all valid readings to a MongoDB Atlas cluster.
 
-## Run tests
 
-```bash
-# unit tests
-$ npm run test
+Redis Caching: Caches the latest telemetry reading for each device in Redis for fast retrieval.
 
-# e2e tests
-$ npm run test:e2e
 
-# test coverage
-$ npm run test:cov
-```
+Threshold Alerting: Sends an immediate POST alert to a configured webhook if temperature > 50 or humidity > 90.
 
-## Deployment
+Data Retrieval:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+GET /api/v1/devices/:deviceId/latest: Retrieves the latest reading for a device (Redis-first, with Mongo fallback).
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+GET /api/v1/sites/:siteId/summary: Provides a time-boxed aggregation summary (count, avg/max temp, avg/max humidity, unique devices) for a site.
 
-## Resources
 
-Check out a few resources that may come in handy when working with NestJS:
+Health Check: A GET /api/v1/health endpoint to monitor the connection status of MongoDB and Redis.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
 
-## Support
+Validation: Uses DTOs with class-validator to validate all incoming request bodies and query parameters.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+🚀 Getting Started
+Prerequisites
+Node.js (v18 or later recommended)
 
-## Stay in touch
+npm
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+A running Redis instance (e.g., local or cloud)
 
-## License
+A MongoDB database (a free MongoDB Atlas cluster is perfect for this) 
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+1. Installation
+Clone this repository (or download and unzip the code).
+
+Navigate to the project directory:
+
+Bash
+
+cd telemetry-ingestor
+Install the project dependencies:
+
+Bash
+
+npm install
+2. Configuration
+Create a .env file in the root of the project.
+
+Copy the contents of .env.example into your new .env file.
+
+Update the .env file with your credentials.
+
+Code snippet
+
+# --- .env file ---
+
+# 1. MongoDB Atlas Connection String 
+# (Note: This project was built and tested using a MongoDB Atlas cluster)
+MONGO_URI=mongodb+srv://<your_user>:<your_password>@<your_cluster_url>/<db_name>
+
+# 2. Redis Connection URL
+REDIS_URL=redis://localhost:6379
+
+# 3. Alert Webhook URL 
+# This is my unique URL for review:
+# https://webhook.site/d26806b1-3de3-4837-b83a-5772d82a1b0b
+ALERT_WEBHOOK_URL=https://webhook.site/d26806b1-3de3-4837-b83a-5772d82a1b0b
+
+# 4. Bearer Token for securing ingest endpoints
+INGEST_TOKEN=secret123
+
+# 5. Port
+PORT=3000
+3. Running the Application
+Once configured, you can run the application in development mode (which supports hot-reloading):
+
+Bash
+
+npm run start:dev
+The application will be running on http://localhost:3000.
+
+4. Running Tests
+The project includes both unit and end-to-end (e2e) tests.
+
+Note: The e2e tests require a live connection to your MongoDB and Redis instances as specified in the .env file.
+
+Bash
+
+# Run unit tests
+npm run test
+
+# Run e2e tests
+npm run test:e2e
+🧪 Quick Verification (cURL)
+You can use these curl commands to quickly test the running application.
+
+(These examples assume the INGEST_TOKEN is secret123)
+
+1. POST Telemetry (with High Temperature Alert)
+This will ingest the data and also trigger an alert to your webhook.
+
+Bash
+
+curl -s -X POST http://localhost:3000/api/v1/telemetry \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer secret123" \
+-d '{"deviceId":"dev-001","siteId":"site-A","ts":"2025-10-31T10:00:30.000Z","metrics":{"temperature":51.2, "humidity":55}}'
+
+# Check your webhook URL: https://webhook.site/d26806b1-3de3-4837-b83a-5772d82a1b0b
+2. GET Latest Data for Device
+Bash
+
+curl -s -H "Authorization: Bearer secret123" \
+http://localhost:3000/api/v1/devices/dev-001/latest
+3. GET Site Summary
+Bash
+
+curl -s -H "Authorization: Bearer secret123" \
+"http://localhost:3000/api/v1/sites/site-A/summary?from=2025-10-31T00:00:00.000Z&to=2025-11-01T00:00:00.000Z"
+4. Check Health
+Bash
+
+curl -s http://localhost:3000/api/v1/health
+🤖 Use of AI Assistance
+As permitted by the exercise, AI (Gemini) was used to assist in the following ways:
+
+
+Boilerplate Generation: Generated initial boilerplate for the NestJS service, controller, and DTOs with class-validator decorators.
+
+Debugging Type Errors: Helped resolve a TypeScript error (TS2532: Object is possibly 'undefined') by suggesting the use of optional chaining (?.) for the Mongoose health check.
+
+Troubleshooting E2E Tests: Identified why a test for invalid data (missing siteId) returned a 500 Internal Server Error instead of the expected 400 Bad Request. The AI suggested catching the Mongoose ValidationError in the service and re-throwing it as a BadRequestException.
+
+Fixing Logic Errors: Helped add validation to the getSiteSummary method to check for invalid date strings (isNaN(date.getTime())) and return a 400 error, which fixed a failing e2e test.
+
+README Generation: Generated the structure and polished the content for this README.md file based on the project files and exercise requirements.
