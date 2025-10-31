@@ -1,70 +1,54 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { TelemetryService } from './telemetry.service';
-import { getModelToken } from '@nestjs/mongoose';
-import { Telemetry } from './schemas/telemetry.schema';
-import { ConfigService } from '@nestjs/config';
-import { HttpService } from '@nestjs/axios';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  Get,
+  Param,
+  Query,
+  NotFoundException,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
+import {
+  TelemetryService,
+  IngestResponse,
+  SiteSummary,
+} from './telemetry.service';
+import { TelemetryDto } from './dto/telemetry.dto';
 
-describe('TelemetryService', () => {
-  let service: TelemetryService;
+@Controller('api/v1')
+export class TelemetryController {
+  constructor(private readonly telemetryService: TelemetryService) {}
 
-  interface MockTelemetryInstance {
-    save: jest.Mock;
+  @Post('telemetry')
+  @HttpCode(HttpStatus.CREATED)
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  async ingest(
+    @Body() body: TelemetryDto | TelemetryDto[],
+  ): Promise<IngestResponse> {
+    return await this.telemetryService.ingestTelemetry(body);
   }
 
-  interface MockTelemetryModel {
-    new (doc?: any): MockTelemetryInstance;
-    findOne: jest.Mock;
-    aggregate: jest.Mock;
-    db: { db: { command: jest.Mock } };
+  @Get('devices/:deviceId/latest')
+  async getLatest(@Param('deviceId') deviceId: string) {
+    const latest = await this.telemetryService.getLatestByDevice(deviceId);
+    if (!latest) throw new NotFoundException('No telemetry found for device');
+    return latest;
   }
 
-  const mockTelemetryModel: MockTelemetryModel = function (
-    this: MockTelemetryInstance,
-    doc?: any,
-  ) {
-    this.save = jest.fn().mockResolvedValue({ ...doc, _id: 'mockid' });
-  };
-  mockTelemetryModel.findOne = jest.fn().mockReturnValue({
-    sort: jest.fn().mockReturnThis(),
-    exec: jest.fn().mockResolvedValue(null),
-  });
-  mockTelemetryModel.aggregate = jest.fn().mockResolvedValue([]);
-  // provide a fake db object for health check
-  mockTelemetryModel.db = {
-    db: { command: jest.fn().mockResolvedValue({ ok: 1 }) },
-  };
+  @Get('sites/:siteId/summary')
+  async getSiteSummary(
+    @Param('siteId') siteId: string,
+    @Query('from') from: string,
+    @Query('to') to: string,
+  ): Promise<SiteSummary> {
+    return await this.telemetryService.getSiteSummary(siteId, from, to);
+  }
 
-  const mockConfigService = {
-    get: jest.fn((key: string) => {
-      if (key === 'REDIS_URL') return '';
-      if (key === 'ALERT_WEBHOOK_URL') return '';
-      return null;
-    }),
-  };
-
-  const mockHttpService = {
-    post: jest.fn().mockReturnValue({
-      pipe: jest.fn().mockReturnValue({
-        toPromise: jest.fn(),
-      }),
-    }),
-  };
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        TelemetryService,
-        { provide: getModelToken(Telemetry.name), useValue: mockTelemetryModel },
-        { provide: ConfigService, useValue: mockConfigService },
-        { provide: HttpService, useValue: mockHttpService },
-      ],
-    }).compile();
-
-    service = module.get<TelemetryService>(TelemetryService);
-  });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
+  @Get('health')
+  async health() {
+    return await this.telemetryService.checkHealth();
+  }
+}
